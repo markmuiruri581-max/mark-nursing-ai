@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "courses": [
+    {
+      "name": "Global Quality Maternal and Newborn Care",
+      "safe_name": "global-quality-maternal-and-newborn-care",
+      "path": "courses/global-quality-maternal-and-newborn-care",
+      "modules": [
+        {
+          "name": "Module Completed Global Quality Maternal Newborn Care",
+          "display_name": "Module Completed Global Quality Maternal Newborn Care",
+          "safe_name": "module-completed-global-quality-maternal-newborn-care",
+          "path": "courses/global-quality-maternal-and-newborn-care/module-completed-global-quality-maternal-newborn-care",
+          "status": "STUDY_PACK_COMPLETE",
+          "created": "2026-06-23T23:47:01+03:00",
+          "created_at": "2026-06-23T23:47:01+03:00",
+          "updated_at": "2026-06-24T10:15:19+03:00",
+          "source_count": 0,
+          "source_status": "",
+          "library_manifest": "",
+          "privacy_status": "",
+          "paths": {
+            "module_dir": "courses/global-quality-maternal-and-newborn-care/module-completed-global-quality-maternal-newborn-care",
+            "urls": "courses/global-quality-maternal-and-newborn-care/module-completed-global-quality-maternal-newborn-care/00_inputs/urls.txt",
+            "status": "courses/global-quality-maternal-and-newborn-care/module-completed-global-quality-maternal-newborn-care/MODULE_STATUS.md",
+            "next_step": "courses/global-quality-maternal-and-newborn-care/module-completed-global-quality-maternal-newborn-care/NEXT_STEP.md",
+            "run_log": "courses/global-quality-maternal-and-newborn-care/module-completed-global-quality-maternal-newborn-care/08_logs/run_log.txt"
+          }
+        },
+        {
+          "name": "Module 2",
+          "display_name": "Module 2",
+          "safe_name": "module-2",
+          "path": "courses/global-quality-maternal-and-newborn-care/module-2",
+          "status": "STAGE1_RUNNING",
+          "created": "2026-06-24T11:55:30+03:00",
+          "created_at": "2026-06-24T11:55:30+03:00",
+          "updated_at": "2026-06-24T13:28:53+03:00",
+          "source_count": 0,
+          "source_status": "",
+          "library_manifest": "",
+          "privacy_status": "",
+          "paths": {
+            "module_dir": "courses/global-quality-maternal-and-newborn-care/module-2",
+            "urls": "courses/global-quality-maternal-and-newborn-care/module-2/00_inputs/urls.txt",
+            "status": "courses/global-quality-maternal-and-newborn-care/module-2/MODULE_STATUS.md",
+            "next_step": "courses/global-quality-maternal-and-newborn-care/module-2/NEXT_STEP.md",
+            "run_log": "courses/global-quality-maternal-and-newborn-care/module-2/08_logs/run_log.txt"
+          }
+        },
+        {
+          "name": "Module 3",
+          "display_name": "Module 3",
+          "safe_name": "module-3",
+          "path": "courses/global-quality-maternal-and-newborn-care/module-3",
+          "status": "STAGE1_RUNNING",
+          "created": "2026-06-28T01:28:41+03:00",
+          "created_at": "2026-06-28T01:28:41+03:00",
+          "updated_at": "2026-06-28T11:32:33+03:00",
+          "source_count": 0,
+          "source_status": "",
+          "library_manifest": "",
+          "privacy_status": "",
+          "paths": {
+            "module_dir": "courses/global-quality-maternal-and-newborn-care/module-3",
+            "urls": "courses/global-quality-maternal-and-newborn-care/module-3/00_inputs/urls.txt",
+            "status": "courses/global-quality-maternal-and-newborn-care/module-3/MODULE_STATUS.md",
+            "next_step": "courses/global-quality-maternal-and-newborn-care/module-3/NEXT_STEP.md",
+            "run_log": "courses/global-quality-maternal-and-newborn-care/module-3/08_logs/run_log.txt"
+          }
+        }
+      ]
+    }
+  ]
+}

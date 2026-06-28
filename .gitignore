@@ -1,0 +1,41 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Python cache and local environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+
+# Generated MNCH module outputs
+courses/**/01_source_cards/
+courses/**/02_combined/
+courses/**/03_stage2_prompt/
+courses/**/04_final_synthesis/
+courses/**/05_study_pack/
+courses/**/06_manual_fallback_prompts/
+courses/**/07_external_llm_batch_prompts/
+courses/**/08_logs/
+courses/**/18_synthesis_candidates/
+courses/**/19_synthesis_prompts/
+courses/**/20_synthesis_prompt_packages/
+courses/**/21_external_synthesis_responses/
+
+# Keep source inputs and status files reviewable
+!courses/**/00_inputs/
+!courses/**/00_inputs/urls.txt
+!courses/**/MODULE_STATUS.md
+!courses/**/NEXT_STEP.md

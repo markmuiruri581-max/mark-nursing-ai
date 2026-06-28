@@ -1,0 +1,46 @@
+﻿import os
+import subprocess
+
+# Define path constants based on your active workspace layout
+base_dir = r"courses/global-quality-maternal-and-newborn-care/module-3/01_source_cards"
+prompt_package_dir = os.path.join(base_dir, "source_card_prompt_package_20260628113233")
+
+print("\n--- Automated Pre-Populated Source-Card Editor ---")
+
+if not os.path.exists(prompt_package_dir):
+    print(f"Error: Prompt package directory not found at: {prompt_package_dir}")
+    exit()
+
+# Filter and sort the prompt text files numerically
+prompt_files = sorted([
+    f for f in os.listdir(prompt_package_dir) 
+    if f.endswith('.txt') and 'manifest' not in f.lower()
+])
+
+if not prompt_files:
+    print(f"Error: No text prompt files found inside {prompt_package_dir}")
+    exit()
+
+total_cards = len(prompt_files)
+
+for idx, prompt_file in enumerate(prompt_files, start=1):
+    filename = f"source_card_{idx:02d}.md"
+    filepath = os.path.join(base_dir, filename)
+    prompt_filepath = os.path.join(prompt_package_dir, prompt_file)
+    
+    # Read the text of the generated prompt
+    with open(prompt_filepath, 'r', encoding='utf-8') as pf:
+        prompt_content = pf.read()
+        
+    # Write the prompt into the markdown file if it does not contain data yet
+    if not os.path.exists(filepath) or os.path.getsize(filepath) < 50:
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(f"# Source Card {idx:02d}\n\n")
+            f.write("=== PRE-LOADED PROMPT FOR EXTERN LLM ===\n")
+            f.write(prompt_content)
+            f.write("\n\n=== PASTE LLM RESPONSE DIRECTLY BELOW ===\n\n")
+            
+    print(f"[{idx}/{total_cards}] Launching Notepad for {filename}...")
+    subprocess.run(["notepad.exe", filepath])
+
+print("\nAll source cards have been pre-populated and processed successfully.")
