@@ -1,95 +1,70 @@
+
 import os
 import google.generativeai as genai
 from pathlib import Path
+from dotenv import load_dotenv
+from renderer import render_markdown_file
+from pilot_utils import display_status_and_next_steps
 
 def main():
-    # 1. Configuration & Paths
-    workspace_dir = Path(r"C:\Users\KARANJA\Downloads\Assistant & Agentic AI\MNCH_Coursera_Automation_Workspace")
-    module_dir = workspace_dir / "courses" / "global-quality-maternal-and-newborn-care" / "module-3"
+    print("🔍 RUNNING CONFIGURATION DIAGNOSTICS...")
     
+    # 1. Setup Workspace Paths
+    workspace_dir = Path(r"C:\Users\KARANJA\Downloads\Assistant & Agentic AI\MNCH_Coursera_Automation_Workspace")
+    env_file_path = workspace_dir / ".env"
+    
+    # 2. Force load the .env file
+    load_dotenv(dotenv_path=env_file_path, override=True)
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        print("❌ Error: GEMINI_API_KEY is missing.")
+        return
+    api_key = api_key.strip().replace('"', '').replace("'", "")
+    
+    # 3. Path Configuration
+    module_dir = workspace_dir / "courses" / "global-quality-maternal-and-newborn-care" / "module-3"
     input_file = module_dir / "02_final_synthesis" / "stage2_final_synthesis.md"
     output_dir = module_dir / "03_study_pack"
     output_file = output_dir / "stage3_study_pack.md"
-    
     output_dir.mkdir(parents=True, exist_ok=True)
 
     if not input_file.exists():
-        print(f"❌ Error: Final Synthesis file not found at {input_file}")
+        print(f"❌ Error: Final Synthesis file not found.")
         return
 
-    print("📄 Loading Final Synthesis document...")
-    synthesis_content = input_file.read_text(encoding="utf-8")
-
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        print("❌ Error: GEMINI_API_KEY missing.")
-        return
-        
+    # 4. Initialize Gemini
     genai.configure(api_key=api_key)
-
-    # 2. Strict Guardrails (Aligned with RICKEM & Onboarding Rules)
     system_instruction = (
-        "You are an expert clinical educator acting under strict closed-book constraints.\n"
-        "RULE 1: Answer ONLY using the text provided. Do not invent any clinical facts, metrics, or guidelines.\n"
-        "RULE 2: Output only the requested Markdown structure. No conversational filler, pleasantries, or transitions.\n"
-        "RULE 3: Maintain extreme factual density. Extract high-yield operational/clinical data suitable for Anki."
+        "You are an expert clinical educator. Answer ONLY using the provided text. "
+        "Output structured Markdown. Keep it dense and high-yield."
     )
+    model = genai.GenerativeModel(model_name="gemini-2.5-flash", system_instruction=system_instruction)
 
-    prompt = (
-        "Analyze the following Final Synthesis document and generate a pristine Study-Pack strictly following this schema.\n\n"
-        "--- STRUCTURAL SCHEMA ---\n"
-        "# Module 3: Clinical Study-Pack\n\n"
-        "--- \n\n"
-        "## 1. High-Yield Assessment Quiz\n"
-        "Generate 5 multiple-choice questions. Format exactly as:\n"
-        "**Q1. [Clear, knowledge-focused question]**\n"
-        "- A) [Option A]\n"
-        "- B) [Option B]\n"
-        "- C) [Option C]\n"
-        "- D) [Option D]\n\n"
-        "### Quiz Answer Key & Clinical Rationale\n"
-        "* **Q1:** [Letter] - *Rationale:* [Concise, text-grounded explanation. If an answer cannot be explicitly confirmed by the text, state 'Not stated in the provided text'].\n\n"
-        "--- \n\n"
-        "## 2. Active Recall Flashcard Matrix (Anki-Ready)\n"
-        "Extract 5 high-yield clinical/operational concepts. Format as a table:\n"
-        "| Core Concept / Term | Definition | Operational Relevance |\n"
-        "| :--- | :--- | :--- |\n"
-        "| Example | Example | Example |\n\n"
-        "--- \n\n"
-        "## 3. Clinical Discussion Prompts\n"
-        "Generate 3 debate/discussion prompts. Format as:\n"
-        "> **Discussion Track 1: [Topic Title]**\n"
-        "> [Analytical question based on clinical realities].\n\n"
-        "--- END OF SCHEMA ---\n\n"
-        f"--- FINAL SYNTHESIS SOURCE TEXT ---\n{synthesis_content}\n"
-    )
-
-    print("🚀 Sending structured prompt to Gemini API...")
+    # 5. Execution
+    print("🚀 Sending structured prompt to Gemini...")
     try:
-        model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash",
-            system_instruction=system_instruction
-        )
+        synthesis_content = input_file.read_text(encoding="utf-8")
+        prompt = f"Analyze this synthesis and generate a Study-Pack with Quiz, Flashcards, and Discussion prompts.\n\n{synthesis_content}"
         
-        generation_config = genai.GenerationConfig(
-            temperature=0.0, # Zero temperature forces strict factual extraction
-            top_p=0.8,
-            max_output_tokens=8192
-        )
-
-        response = model.generate_content(
-            prompt,
-            generation_config=generation_config
-        )
+        response = model.generate_content(prompt)
         
         if response.text:
             output_file.write_text(response.text, encoding="utf-8")
-            print(f"✅ Success! Study-Pack saved to:\n{output_file}")
+            print(f"✅ Success! Study-Pack MD saved.")
+            
+            # HTML Rendering
+            html_file = output_file.with_suffix('.html')
+            render_markdown_file(str(output_file), str(html_file), "Module 3: Study Pack")
+            print(f"🎨 Visual HTML document rendered.")
         else:
             print("⚠️ Error: Empty response from API.")
             
     except Exception as e:
         print(f"❌ API Error: {e}")
+
+    # --- THE AUTONOMOUS NEXT STEP ---
+    # This sits inside main(), aligned with the code above it.
+    display_status_and_next_steps(current_stage="Stage 3: Study Pack")
 
 if __name__ == "__main__":
     main()

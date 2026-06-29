@@ -39,3 +39,4 @@ courses/**/21_external_synthesis_responses/
 !courses/**/00_inputs/urls.txt
 !courses/**/MODULE_STATUS.md
 !courses/**/NEXT_STEP.md
+.env

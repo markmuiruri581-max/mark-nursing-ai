@@ -1,84 +1,88 @@
 import os
 import time
+from pathlib import Path
+from dotenv import load_dotenv
+from renderer import render_markdown_file
+from pilot_utils import display_status_and_next_steps
+from pdf_extractor import extract_text_from_pdf  # New extraction engine
 
-try:
+def print_api_renewal_guide(error_message):
+    print("\n" + "="*60)
+    print("❌ CRITICAL ERROR: GEMINI API CONNECTION FAILED")
+    print(f"Details: {error_message}")
+    print("="*60)
+
+def verify_url_signature(prompt_content):
+    lower_content = prompt_content.lower()
+    # If any of these are found, we treat it as a PDF
+    pdf_signatures = [".pdf", "/pdf", "type=pdf", "/download"]
+    for signature in pdf_signatures:
+        if signature in lower_content:
+            return False
+    return True
+
+def main():
+    print("🤖 CO-PILOT: AUTOMATED WORKSPACE CONTEXT ANALYSIS")
+    
+    # 1. Setup & Diagnostic Override
+    workspace_dir = Path(r"C:\Users\KARANJA\Downloads\Assistant & Agentic AI\MNCH_Coursera_Automation_Workspace")
+    env_file_path = workspace_dir / ".env"
+    load_dotenv(dotenv_path=env_file_path, override=True)
+    
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        print("❌ API Key Missing.")
+        return
+    api_key = api_key.strip().replace('"', '').replace("'", "")
+    
+    # 2. Logic Setup
     import google.generativeai as genai
-except ImportError:
-    print("Error: The google-generativeai library is not installed. Please run 'pip install google-generativeai' in PowerShell.")
-    exit()
-
-# Configuration and API Key placement
-import os
-
-# Securely fetch the API key from the system environment
-api_key = os.environ.get("GEMINI_API_KEY")
-if not api_key:
-    print("❌ Error: GEMINI_API_KEY environment variable is missing.")
-    return
-genai.configure(api_key=API_KEY)
-
-# Directory configurations
-base_dir = r"courses/global-quality-maternal-and-newborn-care/module-3/01_source_cards"
-prompt_package_dir = os.path.join(base_dir, "source_card_prompt_package_20260628113233")
-
-print("\n--- Fully Automated Gemini API Source-Card Generator ---")
-
-if not os.path.exists(prompt_package_dir):
-    print(f"Error: Prompt package directory not found at: {prompt_package_dir}")
-    exit()
-
-# Safety and extraction rules applied directly to the model
-system_rules = (
-    "You are a highly precise data extraction engine. Output strictly in Markdown format. "
-    "Restrict extraction to operational healthcare tools, procedures, and clinical workflows. "
-    "Do not include generic wellness or beauty products. "
-    "Never generate fictional diagnostic metrics or precision percentages; only use externally measured data. "
-    "Treat every URL context as an isolated ingestion event to prevent continuity errors."
-)
-
-# Initialize the Gemini model
-model = genai.GenerativeModel(
-    model_name='gemini-2.5-flash',
-    system_instruction=system_rules
-)
-
-# Read and sort prompt files matching the structure from Stage 1
-prompt_files = sorted([
-    f for f in os.listdir(prompt_package_dir) 
-    if f.startswith('source_card_prompt_') and f.endswith('.md')
-])
-total_cards = len(prompt_files)
-
-for idx, prompt_file in enumerate(prompt_files, start=1):
-    filename = f"source_card_{idx:02d}.md"
-    filepath = os.path.join(base_dir, filename)
-    prompt_filepath = os.path.join(prompt_package_dir, prompt_file)
+    genai.configure(api_key=api_key)
+    system_rules = "You are a precise data extraction engine. Output strictly in Markdown. Use headers, bullets, and bolding for clinical density."
+    model = genai.GenerativeModel(model_name='gemini-2.5-flash', system_instruction=system_rules)
     
-    # Skip processing if the source card file already has data written to it
-    if os.path.exists(filepath) and os.path.getsize(filepath) > 200:
-        print(f"[{idx}/{total_cards}] {filename} already contains data. Skipping.")
-        continue
-        
-    print(f"[{idx}/{total_cards}] Sending {prompt_file} to Gemini API...")
+    module_dir = workspace_dir / "courses" / "global-quality-maternal-and-newborn-care" / "module-3"
+    base_dir = module_dir / "01_source_cards"
+    prompt_package_dir = base_dir / "source_card_prompt_package_20260628113233"
     
-    with open(prompt_filepath, 'r', encoding='utf-8') as pf:
-        prompt_content = pf.read()
+    if not prompt_package_dir.exists():
+        print("📍 Missing prompt folder.")
+        return
+
+    # 3. Processing Loop
+    prompt_files = sorted([f.name for f in prompt_package_dir.iterdir() if f.name.startswith('source_card_prompt_') and f.name.endswith('.md')])
+    
+    for idx, prompt_file in enumerate(prompt_files, start=1):
+        filename = f"source_card_{idx:02d}.md"
+        filepath = base_dir / filename
         
-    try:
-        # Request content from Google AI Studio servers
-        response = model.generate_content(prompt_content)
-        
-        # Save response string into a clean Markdown file
-        with open(filepath, 'w', encoding='utf-8') as f:
-            f.write(f"# Source Card {idx:02d}\n\n")
-            f.write(response.text)
+        if filepath.exists() and filepath.stat().st_size > 200:
+            continue
             
-        print(f"    -> Success! Saved text data seamlessly to {filename}")
+        print(f"🚀 Processing: {prompt_file}")
+        prompt_content = (prompt_package_dir / prompt_file).read_text(encoding='utf-8')
         
-        # Free tier rate limit mitigation delay
-        time.sleep(3) 
-        
-    except Exception as e:
-        print(f"    -> Error processing {filename}: {e}")
+        # 4. Content Processing (PDF or Standard)
+        if not verify_url_signature(prompt_content):
+            print(f"📄 PDF DETECTED: Extracting from {prompt_file}...")
+            # We treat the prompt content as the path/source to the PDF
+            pdf_data = extract_text_from_pdf(prompt_content)
+            final_prompt = f"Synthesize this clinical PDF data:\n\n{pdf_data}"
+        else:
+            final_prompt = prompt_content
+            
+        try:
+            response = model.generate_content(final_prompt)
+            if response.text:
+                filepath.write_text(f"# Source Card {idx:02d}\n\n{response.text}", encoding='utf-8')
+                render_markdown_file(str(filepath), str(filepath.with_suffix('.html')), f"Source Card {idx:02d}")
+                time.sleep(2)
+        except Exception as e:
+            print(f"❌ API Error: {e}")
+            break
 
-print("\nAll automated source cards are complete. You can now close this script and run Option 4 in your main manager.")
+    # Autonomous status reporter
+    display_status_and_next_steps(current_stage="Stage 1: Source Cards")
+
+if __name__ == "__main__":
+    main()
